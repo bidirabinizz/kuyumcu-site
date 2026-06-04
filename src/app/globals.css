@@ -106,8 +106,8 @@ body {
 
 .brand-logo-wrapper {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 140px;
+  height: 140px;
   margin: 0 auto 1.2rem;
   border-radius: 50%;
   background: linear-gradient(135deg, #18181b, #09090b);
@@ -214,7 +214,7 @@ body {
 /* Special Catalog Button with dashed gold borders and pulsing glow */
 .link-item-featured {
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(7, 7, 8, 0.85));
-  border: 2px dashed var(--color-gold);
+  border: var(--border-glass);
   animation: pulse-glow 2.5s infinite alternate;
 }
 
@@ -307,7 +307,7 @@ body {
   width: 100%;
   padding: 1rem 1.2rem 1rem 3rem;
   background: var(--color-bg-card);
-  border: var(--border-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   color: #fff;
   font-family: var(--font-sans);
@@ -317,8 +317,8 @@ body {
 }
 
 .catalog-search-input:focus {
-  border-color: var(--color-gold);
-  box-shadow: 0 0 15px var(--color-gold-glow);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 .catalog-search-icon {
@@ -347,7 +347,7 @@ body {
 .catalog-tab {
   padding: 0.6rem 1.2rem;
   background: rgba(255, 255, 255, 0.03);
-  border: var(--border-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   color: var(--color-text-muted);
   cursor: pointer;
@@ -358,7 +358,7 @@ body {
 }
 
 .catalog-tab:hover {
-  background: rgba(212, 175, 55, 0.08);
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
 }
 
@@ -381,7 +381,7 @@ body {
   background: var(--color-bg-card);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: var(--border-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   overflow: hidden;
   transition: var(--transition-smooth);
@@ -391,8 +391,8 @@ body {
 
 .product-card:hover {
   transform: translateY(-6px);
-  border-color: var(--color-gold);
-  box-shadow: var(--shadow-gold);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
 }
 
 .product-img-container {

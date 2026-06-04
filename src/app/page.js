@@ -247,24 +247,13 @@ export default function Home() {
         {/* Header Section */}
         <header className="brand-header animate__animated animate__fadeInDown">
           <div className="brand-logo-wrapper">
-            <svg 
-              className="brand-logo-icon" 
-              width="40" 
-              height="40" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="1.5" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            >
-              <path d="M6 3h12l4 6-10 12L2 9z"></path>
-              <path d="M11 3 8 9l4 12 4-12-3-6"></path>
-              <path d="M2 9h20"></path>
-            </svg>
+            <img 
+              src="/caparkuyumculuklogo.jpeg" 
+              alt="Çapar Kuyumculuk Logo" 
+              style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} 
+            />
           </div>
           <h1 className="brand-title">ÇAPAR KUYUMCULUK</h1>
-          <p className="brand-subtitle">Ailenizin Kuyumcusu</p>
         </header>
 
         {/* Dynamic Bio Links Feed */}
