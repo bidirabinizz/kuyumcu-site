@@ -22,6 +22,11 @@
   margin: 0;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 html {
   background-color: var(--color-bg-dark);
 }
