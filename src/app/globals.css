@@ -208,18 +208,18 @@ body {
   transform: translateY(-4px);
   border-color: var(--color-gold);
   box-shadow: 0 10px 25px rgba(212, 175, 55, 0.35);
-  background: rgba(20, 20, 24, 0.85);
+  background: var(--bg-hover, rgba(20, 20, 24, 0.85));
 }
 
 /* Special Catalog Button with dashed gold borders and pulsing glow */
 .link-item-featured {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(7, 7, 8, 0.85));
+  background: var(--bg-featured, linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(7, 7, 8, 0.85)));
   border: var(--border-glass);
   animation: pulse-glow 2.5s infinite alternate;
 }
 
 .link-item-featured:hover {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(7, 7, 8, 0.95));
+  background: var(--bg-featured-hover, linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(7, 7, 8, 0.95)));
 }
 
 @keyframes pulse-glow {

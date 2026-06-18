@@ -139,7 +139,7 @@ export default function AdminPanel() {
   const [categories, setCategories] = useState([]);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [settings, setSettings] = useState({
-    whatsapp_number: '', address: '', working_hours: '', bg_video_url: '', show_video: 'true', video_opacity: 35,
+    whatsapp_number: '', address: '', working_hours: '', bg_video_url: '', show_video: 'true', video_opacity: 35, button_opacity: 75,
     logo_url: '/caparkuyumculuklogo.jpeg', site_name: 'ÇAPAR KUYUMCULUK'
   });
 
@@ -220,6 +220,7 @@ export default function AdminPanel() {
         whatsapp_number: sObj.whatsapp_number || '', address: sObj.address || '', working_hours: sObj.working_hours || '',
         bg_video_url: sObj.bg_video_url || '', show_video: sObj.show_video || 'true', 
         video_opacity: sObj.video_opacity ? Math.round(parseFloat(sObj.video_opacity) * 100) : 35,
+        button_opacity: sObj.button_opacity ? Math.round(parseFloat(sObj.button_opacity) * 100) : 75,
         logo_url: sObj.logo_url || '/caparkuyumculuklogo.jpeg', site_name: sObj.site_name || 'ÇAPAR KUYUMCULUK'
       });
     }
@@ -401,7 +402,7 @@ export default function AdminPanel() {
 
     const settingUpdates = Object.keys(settings).map(key => {
       let val = settings[key];
-      if (key === 'video_opacity') val = (val / 100).toString();
+      if (key === 'video_opacity' || key === 'button_opacity') val = (val / 100).toString();
       return supabase.from('settings').upsert({ key, value: val });
     });
 
@@ -618,6 +619,11 @@ export default function AdminPanel() {
                   <input type="range" min="0" max="100" value={settings.video_opacity} onChange={(e) => updateSettingField('video_opacity', e.target.value)} style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--color-gold)' }} />
                 </div>
               )}
+              
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}><label className="bank-detail-label">Menü Butonları Opaklığı</label><span style={{ fontSize: '0.75rem', color: 'var(--color-gold)' }}>%{settings.button_opacity}</span></div>
+                <input type="range" min="0" max="100" value={settings.button_opacity} onChange={(e) => updateSettingField('button_opacity', e.target.value)} style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--color-gold)' }} />
+              </div>
             </div>
           )}
         </div>

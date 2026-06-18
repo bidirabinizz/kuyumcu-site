@@ -179,8 +179,24 @@ export default function Home() {
     return withElementorWrapper(link, el);
   };
 
+  let buttonOp = 0.75;
+  if (settings.button_opacity !== undefined) {
+    let val = parseFloat(settings.button_opacity);
+    buttonOp = val > 1 ? val / 100 : val;
+  }
+
+  const hoverOp = Math.min(1, buttonOp + 0.1);
+  const featuredGradient = `linear-gradient(135deg, rgba(212, 175, 55, 0.15), transparent), linear-gradient(rgba(7, 7, 8, ${buttonOp}), rgba(7, 7, 8, ${buttonOp}))`;
+  const featuredHoverGradient = `linear-gradient(135deg, rgba(212, 175, 55, 0.25), transparent), linear-gradient(rgba(20, 20, 24, ${hoverOp}), rgba(20, 20, 24, ${hoverOp}))`;
+  const hoverBg = `rgba(20, 20, 24, ${hoverOp})`;
+
   return (
-    <div className="layout-wrapper">
+    <div className="layout-wrapper" style={{ 
+      '--color-bg-card': `rgba(13, 13, 15, ${buttonOp})`,
+      '--bg-featured': featuredGradient,
+      '--bg-featured-hover': featuredHoverGradient,
+      '--bg-hover': hoverBg
+    }}>
       <main className="main-container">
         
         {/* Header Section */}
