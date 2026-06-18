@@ -31,7 +31,7 @@ export default function Catalog() {
         const { data: dbProducts, error: prodError } = await supabase
           .from('products')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('sort_order', { ascending: true });
         
         if (!prodError && dbProducts && dbProducts.length > 0) {
           setAllProducts(dbProducts);
