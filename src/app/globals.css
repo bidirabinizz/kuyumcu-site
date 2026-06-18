@@ -1057,3 +1057,45 @@ body {
   transform: scale(1.02);
   z-index: 50;
 }
+
+/* Elementor Style Hover Overlay (Admin Preview) */
+.visual-block-wrapper {
+  position: relative;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+.visual-block-wrapper:hover {
+  outline: 2px dashed var(--color-gold);
+  background: rgba(212,175,55,0.05);
+}
+.elementor-controls {
+  position: absolute;
+  top: -12px;
+  right: 10px;
+  display: none;
+  background: var(--color-gold);
+  border-radius: 6px;
+  padding: 0.2rem;
+  z-index: 999;
+  gap: 0.3rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+.visual-block-wrapper:hover .elementor-controls {
+  display: flex;
+}
+.el-btn {
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.el-btn:hover {
+  background: #000;
+  color: var(--color-gold);
+}

@@ -8,27 +8,29 @@ export default function BackgroundVideo() {
   const [videoOpacity, setVideoOpacity] = useState('0.35');
 
   useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === 'PREVIEW_UPDATE' && event.data.data.settings) {
+        const sObj = event.data.data.settings;
+        if (sObj.show_video !== undefined) setShowVideo(String(sObj.show_video) === 'true');
+        if (sObj.bg_video_url) setVideoUrl(sObj.bg_video_url);
+        if (sObj.video_opacity !== undefined) {
+          let op = parseFloat(sObj.video_opacity);
+          if (op > 1) op = op / 100;
+          setVideoOpacity(op.toString());
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
     const loadSettings = async () => {
       try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('*');
-
+        const { data, error } = await supabase.from('settings').select('*');
         if (!error && data) {
           const sObj = {};
-          data.forEach(item => {
-            sObj[item.key] = item.value;
-          });
-          
-          if (sObj.show_video !== undefined) {
-            setShowVideo(sObj.show_video === 'true');
-          }
-          if (sObj.bg_video_url) {
-            setVideoUrl(sObj.bg_video_url);
-          }
-          if (sObj.video_opacity) {
-            setVideoOpacity(sObj.video_opacity);
-          }
+          data.forEach(item => { sObj[item.key] = item.value; });
+          if (sObj.show_video !== undefined) setShowVideo(sObj.show_video === 'true');
+          if (sObj.bg_video_url) setVideoUrl(sObj.bg_video_url);
+          if (sObj.video_opacity) setVideoOpacity(sObj.video_opacity);
         }
       } catch (err) {
         console.warn('Failed to load video settings from Supabase, using default.', err);
@@ -36,6 +38,7 @@ export default function BackgroundVideo() {
     };
 
     loadSettings();
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   if (!showVideo || !videoUrl) return null;
