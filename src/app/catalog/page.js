@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { products as staticProducts } from './products';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +14,27 @@ export default function Catalog() {
   const [categories, setCategories] = useState([]);
   const [whatsappNumber, setWhatsappNumber] = useState("905441398739");
   const [isPreview, setIsPreview] = useState(false);
+
+  // Drag to scroll logic for desktop
+  const tabsRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const onMouseDown = (e) => {
+    setIsDragging(true);
+    setStartX(e.pageX - tabsRef.current.offsetLeft);
+    setScrollLeft(tabsRef.current.scrollLeft);
+  };
+  const onMouseLeave = () => setIsDragging(false);
+  const onMouseUp = () => setIsDragging(false);
+  const onMouseMove = (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - tabsRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    tabsRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -151,7 +172,15 @@ export default function Catalog() {
         </div>
 
         {/* Categories Tab Bar */}
-        <div className="catalog-tabs">
+        <div 
+          className="catalog-tabs"
+          ref={tabsRef}
+          onMouseDown={onMouseDown}
+          onMouseLeave={onMouseLeave}
+          onMouseUp={onMouseUp}
+          onMouseMove={onMouseMove}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        >
           <button className={`catalog-tab ${selectedCategory.toLowerCase() === 'hepsi' ? 'catalog-tab-active' : ''}`} onClick={() => setSelectedCategory('Hepsi')}>
             Tümü
           </button>
