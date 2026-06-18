@@ -44,6 +44,10 @@ export default function Home() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsPreview(true);
       }
+      if (params.get('openIban') === 'true') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setIbanOpen(true);
+      }
     }
 
     const handleMessage = (event) => {
@@ -148,13 +152,13 @@ export default function Home() {
       );
     } else if (link.url === 'canli-doviz') {
       el = (
-        <button key={link.id} onClick={() => !isPreview && setGoldOpen(true)} className={classes}>
+        <button key={link.id} onClick={(e) => { e.preventDefault(); setGoldOpen(true); }} className={classes}>
           <div className="link-icon-wrapper">{getIcon(link)}</div><span className="link-text">{link.title}</span><span className="link-chevron">→</span>
         </button>
       );
     } else if (link.url === 'iban-bilgileri') {
       el = (
-        <button key={link.id} onClick={() => !isPreview && setIbanOpen(true)} className={classes}>
+        <button key={link.id} onClick={(e) => { e.preventDefault(); setIbanOpen(true); }} className={classes}>
           <div className="link-icon-wrapper">{getIcon(link)}</div><span className="link-text">{link.title}</span><span className="link-chevron">→</span>
         </button>
       );

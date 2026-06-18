@@ -29,6 +29,7 @@ function DraggableListItem({ item, index, type, isActive, onDragStart, onDragEnt
           <span style={{ fontSize: '0.85rem', color: '#fff', fontWeight: '600' }}>{item.title}</span>
           {type === 'products' && <span style={{ fontSize: '0.65rem', color: 'var(--color-gold)' }}>{item.category} • {item.is_pdf_catalog ? 'PDF KATALOG' : item.code}</span>}
           {type === 'links' && <span style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>{item.url}</span>}
+          {type === 'bank_accounts' && <span style={{ fontSize: '0.65rem', color: 'var(--color-gold)' }}>{item.bank}</span>}
         </div>
       </div>
       <div style={{ display: 'flex', gap: '0.4rem' }}>
@@ -136,6 +137,7 @@ export default function AdminPanel() {
   const [links, setLinks] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [bankAccounts, setBankAccounts] = useState([]);
   const [settings, setSettings] = useState({
     whatsapp_number: '', address: '', working_hours: '', bg_video_url: '', show_video: 'true', video_opacity: 35,
     logo_url: '/caparkuyumculuklogo.jpeg', site_name: 'ÇAPAR KUYUMCULUK'
@@ -172,6 +174,7 @@ export default function AdminPanel() {
       fetchLinks();
       fetchProducts();
       fetchCategories();
+      fetchBankAccounts();
       fetchSettings();
     }
   }, [user]);
@@ -197,6 +200,17 @@ export default function AdminPanel() {
     }
   };
 
+  const fetchBankAccounts = async () => {
+    try {
+      const { data, error } = await supabase.from('bank_accounts').select('*').order('sort_order', { ascending: true });
+      if (error) throw error;
+      setBankAccounts(data || []);
+    } catch (e) {
+      console.warn("Bank accounts fetch failed, maybe table doesn't exist yet.");
+      setBankAccounts([]);
+    }
+  };
+
   const fetchSettings = async () => {
     const { data } = await supabase.from('settings').select('*');
     if (data) {
@@ -214,12 +228,43 @@ export default function AdminPanel() {
   // BROADCAST TO IFRAME WHENEVER STATE CHANGES
   useEffect(() => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
+      let previewLinks = [...links];
+      let previewProducts = [...products];
+      let previewCategories = [...categories];
+      let previewBankAccounts = [...bankAccounts];
+
+      if (selectedItem) {
+        if (activeTab === 'links') {
+          const idx = previewLinks.findIndex(l => l.id === selectedItem.id);
+          if (idx !== -1) previewLinks[idx] = selectedItem;
+          else if (selectedItem.id === 'new') previewLinks.push({...selectedItem, id: 'temp_preview'});
+        } else if (activeTab === 'products') {
+          const idx = previewProducts.findIndex(p => p.id === selectedItem.id);
+          if (idx !== -1) previewProducts[idx] = selectedItem;
+          else if (selectedItem.id === 'new') previewProducts.push({...selectedItem, id: 'temp_preview'});
+        } else if (activeTab === 'categories') {
+          const idx = previewCategories.findIndex(c => c.id === selectedItem.id);
+          if (idx !== -1) previewCategories[idx] = selectedItem;
+          else if (selectedItem.id === 'new') previewCategories.push({...selectedItem, id: 'temp_preview'});
+        } else if (activeTab === 'bank_accounts') {
+          const idx = previewBankAccounts.findIndex(b => b.id === selectedItem.id);
+          if (idx !== -1) previewBankAccounts[idx] = selectedItem;
+          else if (selectedItem.id === 'new') previewBankAccounts.push({...selectedItem, id: 'temp_preview'});
+        }
+      }
+
       iframeRef.current.contentWindow.postMessage({
         type: 'PREVIEW_UPDATE',
-        data: { links, products, settings, categories }
+        data: { 
+          links: previewLinks, 
+          products: previewProducts, 
+          settings, 
+          categories: previewCategories, 
+          bankAccounts: previewBankAccounts 
+        }
       }, '*');
     }
-  }, [links, products, settings, categories, activeTab]);
+  }, [links, products, settings, categories, bankAccounts, activeTab, selectedItem]);
 
   // LISTEN TO MESSAGES FROM IFRAME
   useEffect(() => {
@@ -274,6 +319,10 @@ export default function AdminPanel() {
       const newList = [...categories]; const item = newList[draggedIndex];
       newList.splice(draggedIndex, 1); newList.splice(index, 0, item);
       setDraggedIndex(index); setCategories(newList); setHasUnsavedChanges(true);
+    } else if (type === 'bank_accounts') {
+      const newList = [...bankAccounts]; const item = newList[draggedIndex];
+      newList.splice(draggedIndex, 1); newList.splice(index, 0, item);
+      setDraggedIndex(index); setBankAccounts(newList); setHasUnsavedChanges(true);
     }
   };
   const handleDragEnd = () => setDraggedIndex(null);
@@ -282,6 +331,7 @@ export default function AdminPanel() {
   const updateLinkField = (field, value) => { setSelectedItem({ ...selectedItem, [field]: value }); setHasUnsavedChanges(true); };
   const updateProductField = (field, value) => { setSelectedItem({ ...selectedItem, [field]: value }); setHasUnsavedChanges(true); };
   const updateCategoryField = (field, value) => { setSelectedItem({ ...selectedItem, [field]: value }); setHasUnsavedChanges(true); };
+  const updateBankAccountField = (field, value) => { setSelectedItem({ ...selectedItem, [field]: value }); setHasUnsavedChanges(true); };
   const updateSettingField = (field, value) => { setSettings(prev => ({ ...prev, [field]: value })); setHasUnsavedChanges(true); };
 
   const applyItemToLocalState = () => {
@@ -294,6 +344,9 @@ export default function AdminPanel() {
     } else if (activeTab === 'categories') {
       if (selectedItem.id === 'new') setCategories([...categories, { ...selectedItem, id: 'temp_' + Date.now() }]);
       else setCategories(categories.map(c => c.id === selectedItem.id ? selectedItem : c));
+    } else if (activeTab === 'bank_accounts') {
+      if (selectedItem.id === 'new') setBankAccounts([...bankAccounts, { ...selectedItem, id: 'temp_' + Date.now() }]);
+      else setBankAccounts(bankAccounts.map(b => b.id === selectedItem.id ? selectedItem : b));
     }
     setSelectedItem(null);
     setHasUnsavedChanges(true);
@@ -310,6 +363,9 @@ export default function AdminPanel() {
       } else if (type === 'categories') {
         if (!id.startsWith('temp_')) supabase.from('categories').delete().eq('id', id).then();
         setCategories(categories.filter(c => c.id !== id));
+      } else if (type === 'bank_accounts') {
+        if (!id.startsWith('temp_')) supabase.from('bank_accounts').delete().eq('id', id).then();
+        setBankAccounts(bankAccounts.filter(b => b.id !== id));
       }
       setSelectedItem(null);
       setHasUnsavedChanges(true);
@@ -337,17 +393,24 @@ export default function AdminPanel() {
        else return supabase.from('categories').insert([payload]);
     });
 
+    const bankUpdates = bankAccounts.map((b, idx) => {
+       const payload = { bank: b.bank, holder: b.holder, branch: b.branch, iban: b.iban, sort_order: idx * 10 };
+       if (b.id && !b.id.startsWith('temp_')) return supabase.from('bank_accounts').update(payload).eq('id', b.id);
+       else return supabase.from('bank_accounts').insert([payload]);
+    });
+
     const settingUpdates = Object.keys(settings).map(key => {
       let val = settings[key];
       if (key === 'video_opacity') val = (val / 100).toString();
       return supabase.from('settings').upsert({ key, value: val });
     });
 
-    await Promise.all([...linkUpdates, ...prodUpdates, ...catUpdates, ...settingUpdates]);
+    await Promise.all([...linkUpdates, ...prodUpdates, ...catUpdates, ...bankUpdates, ...settingUpdates]);
 
     await fetchLinks();
     await fetchProducts();
     await fetchCategories();
+    await fetchBankAccounts();
 
     setHasUnsavedChanges(false);
     setIsSaving(false);
@@ -386,7 +449,7 @@ export default function AdminPanel() {
     <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: '#070708', overflow: 'hidden' }}>
       
       {/* LEFT SIDEBAR (CONTROL PANEL) */}
-      <aside style={{ width: '400px', backgroundColor: '#0f0f12', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', zIndex: 50, boxShadow: '5px 0 25px rgba(0,0,0,0.8)' }}>
+      <aside style={{ width: '400px', backgroundColor: '#0f0f12', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', zIndex: 50, boxShadow: '5px 0 25px rgba(0,0,0,0.8)', flexShrink: 0 }}>
         <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-gold)', fontSize: '1.2rem', letterSpacing: '1px', margin: 0 }}>ÇAPAR CMS</h2>
@@ -407,10 +470,11 @@ export default function AdminPanel() {
         {/* Tab Navigation */}
         {!selectedItem && (
           <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.05)', flexWrap: 'wrap' }}>
-            <button onClick={() => setActiveTab('links')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'links' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'links' ? '2px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.05)', fontWeight: activeTab === 'links' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Linkler</button>
-            <button onClick={() => setActiveTab('products')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'products' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'products' ? '2px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.05)', fontWeight: activeTab === 'products' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Katalog</button>
-            <button onClick={() => setActiveTab('categories')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'categories' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'categories' ? '2px solid var(--color-gold)' : '2px solid transparent', fontWeight: activeTab === 'categories' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Kategoriler</button>
-            <button onClick={() => setActiveTab('settings')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'settings' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'settings' ? '2px solid var(--color-gold)' : '2px solid transparent', fontWeight: activeTab === 'settings' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Ayarlar</button>
+            <button onClick={() => setActiveTab('links')} style={{ flex: '1 0 33%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'links' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'links' ? '2px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.05)', fontWeight: activeTab === 'links' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Linkler</button>
+            <button onClick={() => setActiveTab('products')} style={{ flex: '1 0 33%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'products' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'products' ? '2px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.05)', fontWeight: activeTab === 'products' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Katalog</button>
+            <button onClick={() => setActiveTab('categories')} style={{ flex: '1 0 33%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'categories' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'categories' ? '2px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.05)', fontWeight: activeTab === 'categories' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Kategoriler</button>
+            <button onClick={() => setActiveTab('bank_accounts')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'bank_accounts' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'bank_accounts' ? '2px solid var(--color-gold)' : '2px solid transparent', fontWeight: activeTab === 'bank_accounts' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Hesaplar (IBAN)</button>
+            <button onClick={() => setActiveTab('settings')} style={{ flex: '1 0 50%', padding: '0.8rem 0', background: 'transparent', border: 'none', color: activeTab === 'settings' ? 'var(--color-gold)' : 'var(--color-text-muted)', borderBottom: activeTab === 'settings' ? '2px solid var(--color-gold)' : '2px solid transparent', fontWeight: activeTab === 'settings' ? '700' : '500', cursor: 'pointer', fontSize: '0.85rem' }}>Site Ayarları</button>
           </div>
         )}
 
@@ -483,6 +547,16 @@ export default function AdminPanel() {
                     <button onClick={applyItemToLocalState} className="product-price-button" style={{ padding: '0.9rem', marginTop: '0.5rem' }}>BİTTİ (Listeye Dön)</button>
                  </div>
                )}
+
+               {activeTab === 'bank_accounts' && (
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div><label className="bank-detail-label">Banka Adı (örn: Ziraat Bankası)</label><input type="text" className="calc-input" style={{ width: '100%' }} value={selectedItem.bank || ''} onChange={(e) => updateBankAccountField('bank', e.target.value)} /></div>
+                    <div><label className="bank-detail-label">Alıcı Adı / Hesap Sahibi</label><input type="text" className="calc-input" style={{ width: '100%' }} value={selectedItem.holder || ''} onChange={(e) => updateBankAccountField('holder', e.target.value)} /></div>
+                    <div><label className="bank-detail-label">Şube Bilgisi (Opsiyonel)</label><input type="text" className="calc-input" style={{ width: '100%' }} value={selectedItem.branch || ''} onChange={(e) => updateBankAccountField('branch', e.target.value)} /></div>
+                    <div><label className="bank-detail-label">IBAN Numarası</label><input type="text" className="calc-input" style={{ width: '100%' }} value={selectedItem.iban || ''} onChange={(e) => updateBankAccountField('iban', e.target.value)} placeholder="TR..." /></div>
+                    <button onClick={applyItemToLocalState} className="product-price-button" style={{ padding: '0.9rem', marginTop: '0.5rem' }}>BİTTİ (Listeye Dön)</button>
+                 </div>
+               )}
              </div>
           )}
 
@@ -508,6 +582,14 @@ export default function AdminPanel() {
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '1rem' }}>Kategorileri sürükleyerek katalogdaki tab sırasını belirleyebilirsiniz.</p>
               {categories.map((cat, idx) => <DraggableListItem key={cat.id} item={{...cat, title: cat.name}} index={idx} type="categories" isActive={false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onClick={(item) => setSelectedItem({...item, id: item.id, name: item.title})} onRemove={(id) => handleRemoveItem(id, 'categories')} />)}
               <button onClick={() => setSelectedItem({ id: 'new', name: '' })} className="product-price-button" style={{ width: '100%', padding: '0.8rem', marginTop: '1rem', background: 'transparent', border: '1px dashed var(--color-gold)', color: 'var(--color-gold)' }}>+ YENİ KATEGORİ EKLE</button>
+            </div>
+          )}
+
+          {!selectedItem && activeTab === 'bank_accounts' && (
+            <div>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', marginBottom: '1rem' }}>Banka hesaplarını sürükleyerek IBAN penceresindeki sırasını belirleyebilirsiniz.</p>
+              {bankAccounts.map((bank, idx) => <DraggableListItem key={bank.id} item={{...bank, title: bank.holder}} index={idx} type="bank_accounts" isActive={false} onDragStart={handleDragStart} onDragEnter={handleDragEnter} onDragEnd={handleDragEnd} onClick={(item) => setSelectedItem({...item, id: item.id})} onRemove={(id) => handleRemoveItem(id, 'bank_accounts')} />)}
+              <button onClick={() => setSelectedItem({ id: 'new', bank: '', holder: '', branch: '', iban: '' })} className="product-price-button" style={{ width: '100%', padding: '0.8rem', marginTop: '1rem', background: 'transparent', border: '1px dashed var(--color-gold)', color: 'var(--color-gold)' }}>+ YENİ BANKA HESABI EKLE</button>
             </div>
           )}
 
@@ -551,7 +633,7 @@ export default function AdminPanel() {
         <div style={{ flexGrow: 1, padding: previewMode === 'mobile' ? '1.5rem' : '0', display: 'flex', justifyContent: 'center', transition: 'all 0.3s ease' }}>
            <div style={{ width: '100%', maxWidth: previewMode === 'mobile' ? '480px' : '100%', height: '100%', borderRadius: previewMode === 'mobile' ? '30px' : '0', overflow: 'hidden', border: previewMode === 'mobile' ? '10px solid #1a1a1f' : 'none', boxShadow: previewMode === 'mobile' ? '0 0 40px rgba(0,0,0,0.5)' : 'none', backgroundColor: '#070708', position: 'relative', transition: 'all 0.3s ease' }}>
               {hasUnsavedChanges && <div style={{ position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(212,175,55,0.95)', color: '#000', padding: '0.5rem 1.2rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 9999, boxShadow: '0 4px 15px rgba(212,175,55,0.3)', pointerEvents: 'none' }}>Değişiklikleri görmek için KAYDET'e basın</div>}
-              <iframe ref={iframeRef} src={activeTab === 'products' ? '/catalog?preview=true' : '/?preview=true'} style={{ width: '100%', height: '100%', border: 'none' }} title="Live Preview" />
+              <iframe ref={iframeRef} src={activeTab === 'products' || activeTab === 'categories' ? '/catalog?preview=true' : (activeTab === 'bank_accounts' ? '/?preview=true&openIban=true' : '/?preview=true')} style={{ width: '100%', height: '100%', border: 'none' }} title="Live Preview" />
            </div>
         </div>
       </main>
