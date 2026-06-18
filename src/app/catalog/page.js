@@ -19,6 +19,7 @@ export default function Catalog() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('preview') === 'true' || window.self !== window.top) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsPreview(true);
       }
     }
@@ -59,13 +60,14 @@ export default function Catalog() {
 
   useEffect(() => {
     let result = allProducts;
-    if (selectedCategory && selectedCategory.toLowerCase() !== 'hepsi') {
-      result = result.filter(p => p.category === selectedCategory);
+    if (selectedCategory && selectedCategory.toLowerCase() !== 'hepsi' && selectedCategory.toLowerCase() !== 'tümü') {
+      result = result.filter(p => p.category && p.category.toLowerCase() === selectedCategory.toLowerCase());
     }
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       result = result.filter(p => p.title.toLowerCase().includes(query) || (p.description && p.description.toLowerCase().includes(query)) || (p.code && p.code.toLowerCase().includes(query)));
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilteredProducts(result);
   }, [selectedCategory, searchQuery, allProducts]);
 

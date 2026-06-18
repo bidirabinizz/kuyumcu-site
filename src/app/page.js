@@ -41,6 +41,7 @@ export default function Home() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('preview') === 'true' || window.self !== window.top) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsPreview(true);
       }
     }
