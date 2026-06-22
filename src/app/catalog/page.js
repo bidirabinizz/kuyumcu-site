@@ -14,6 +14,7 @@ export default function Catalog() {
   const [categories, setCategories] = useState([]);
   const [whatsappNumber, setWhatsappNumber] = useState("905441398739");
   const [isPreview, setIsPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Drag to scroll logic for desktop
   const tabsRef = useRef(null);
@@ -72,6 +73,8 @@ export default function Catalog() {
         if (!settingsError && settingsData) setWhatsappNumber(settingsData.value);
       } catch (err) {
         console.warn('Supabase fetch failed. Falling back to local static catalog.', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -154,6 +157,51 @@ export default function Catalog() {
 
   return (
     <div className="layout-wrapper">
+      {isLoading && (
+        <div className="catalog-loading-overlay">
+          <div className="catalog-loading-spinner"></div>
+          <div className="catalog-loading-text">Katalog Yükleniyor...</div>
+          <style dangerouslySetInnerHTML={{ __html: `
+            .catalog-loading-overlay {
+              position: fixed;
+              top: 0; left: 0; width: 100%; height: 100%;
+              background: rgba(7, 7, 8, 0.7);
+              backdrop-filter: blur(8px);
+              -webkit-backdrop-filter: blur(8px);
+              z-index: 9999;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              color: var(--color-gold);
+            }
+            .catalog-loading-spinner {
+              width: 54px;
+              height: 54px;
+              border: 3px solid rgba(212, 175, 55, 0.15);
+              border-top-color: var(--color-gold);
+              border-radius: 50%;
+              animation: spinner-spin 1s linear infinite;
+              margin-bottom: 1.2rem;
+              box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            }
+            @keyframes spinner-spin {
+              to { transform: rotate(360deg); }
+            }
+            .catalog-loading-text {
+              font-family: var(--font-serif);
+              font-size: 1.1rem;
+              letter-spacing: 3px;
+              text-transform: uppercase;
+              animation: pulse-text 1.5s ease-in-out infinite;
+            }
+            @keyframes pulse-text {
+              0%, 100% { opacity: 0.5; }
+              50% { opacity: 1; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+            }
+          ` }} />
+        </div>
+      )}
       <div className="main-container" style={{ paddingBottom: '3rem' }}>
         
         {/* Navigation & Header */}
@@ -196,12 +244,12 @@ export default function Catalog() {
           <div className="products-grid">
             {filteredProducts.map(product => renderProduct(product))}
           </div>
-        ) : (
+        ) : !isLoading ? (
           <div style={{ textAlign: 'center', margin: '4rem 0', color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '1rem', opacity: 0.5 }}><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
             <p>Bu kategoride ürün bulunamadı.</p>
           </div>
-        )}
+        ) : null}
 
         {/* Product Detail Modal */}
         {activeProduct && !isPreview && !activeProduct.is_pdf_catalog && (

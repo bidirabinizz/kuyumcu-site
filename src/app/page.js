@@ -35,6 +35,7 @@ export default function Home() {
   const [links, setLinks] = useState(defaultLinks);
   const [settings, setSettings] = useState(defaultSettings);
   const [isPreview, setIsPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check if we are inside the admin panel preview
@@ -78,6 +79,8 @@ export default function Home() {
         }
       } catch (err) {
         console.warn('Supabase fetch failed, displaying default local settings.', err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -197,6 +200,51 @@ export default function Home() {
       '--bg-featured-hover': featuredHoverGradient,
       '--bg-hover': hoverBg
     }}>
+      {isLoading && (
+        <div className="catalog-loading-overlay">
+          <div className="catalog-loading-spinner"></div>
+          <div className="catalog-loading-text">ÇAPAR KUYUMCULUK</div>
+          <style dangerouslySetInnerHTML={{ __html: `
+            .catalog-loading-overlay {
+              position: fixed;
+              top: 0; left: 0; width: 100%; height: 100%;
+              background: rgba(7, 7, 8, 0.7);
+              backdrop-filter: blur(8px);
+              -webkit-backdrop-filter: blur(8px);
+              z-index: 9999;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              color: var(--color-gold);
+            }
+            .catalog-loading-spinner {
+              width: 54px;
+              height: 54px;
+              border: 3px solid rgba(212, 175, 55, 0.15);
+              border-top-color: var(--color-gold);
+              border-radius: 50%;
+              animation: spinner-spin 1s linear infinite;
+              margin-bottom: 1.2rem;
+              box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            }
+            @keyframes spinner-spin {
+              to { transform: rotate(360deg); }
+            }
+            .catalog-loading-text {
+              font-family: var(--font-serif);
+              font-size: 1.1rem;
+              letter-spacing: 3px;
+              text-transform: uppercase;
+              animation: pulse-text 1.5s ease-in-out infinite;
+            }
+            @keyframes pulse-text {
+              0%, 100% { opacity: 0.5; }
+              50% { opacity: 1; text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+            }
+          ` }} />
+        </div>
+      )}
       <main className="main-container">
         
         {/* Header Section */}
