@@ -20,31 +20,26 @@ export default function GoldRates({ isOpen, onClose }) {
   useEffect(() => {
     const fetchRates = async () => {
       try {
-        // Fetch USD to TRY rates from free open API
-        const res = await fetch('https://open.er-api.com/v6/latest/USD');
-        const data = await res.json();
+        const res = await fetch('https://altin-tunnel.siper2710.workers.dev/');
+        const json = await res.json();
         
-        if (data && data.rates && data.rates.TRY) {
-          const usdTry = data.rates.TRY;
-          const eurUsd = data.rates.EUR ? 1 / data.rates.EUR : 1.08;
-          const eurTry = usdTry * eurUsd;
-          
-          // Spot gold price (default to 2350 if fetch fails, or we could fetch gold spot later)
-          const goldOunce = 2365; // standard gold ounce price USD
-          const g24 = Math.round((goldOunce / 31.1035) * usdTry);
-          const g22 = Math.round(g24 * 0.916);
-          const cey = Math.round((1.754 * g22) + 150); // weight + premium
-          const tAltin = Math.round(cey * 4);
-
-          setRates({
-            usd: parseFloat(usdTry.toFixed(2)),
-            eur: parseFloat(eurTry.toFixed(2)),
-            ons: goldOunce,
-            gram24k: g24,
-            gram22k: g22,
-            ceyrek: cey,
-            tam: tAltin,
+        if (json && json.data) {
+          const dataMap = {};
+          json.data.forEach(item => {
+            dataMap[item.symbol] = item;
           });
+
+          const getVal = (sym) => dataMap[sym] ? dataMap[sym].ask : null;
+
+          setRates(prev => ({
+            usd: getVal('USDTRY') || prev.usd,
+            eur: getVal('EURTRY') || prev.eur,
+            ons: getVal('XAUUSD') || prev.ons,
+            gram24k: getVal('ALTIN') || prev.gram24k,
+            gram22k: getVal('AYAR22') || prev.gram22k,
+            ceyrek: getVal('CEYREK_YENI') || prev.ceyrek,
+            tam: getVal('TEK_YENI') || prev.tam,
+          }));
         }
       } catch (err) {
         console.warn('API error, using default mock rates', err);
@@ -55,21 +50,8 @@ export default function GoldRates({ isOpen, onClose }) {
 
     fetchRates();
     
-    // Set interval for micro-fluctuations (live simulation feel)
-    const interval = setInterval(() => {
-      setRates(prev => {
-        const factor = 1 + (Math.random() - 0.5) * 0.001; // max 0.1% change
-        return {
-          usd: parseFloat((prev.usd * factor).toFixed(2)),
-          eur: parseFloat((prev.eur * factor).toFixed(2)),
-          ons: Math.round(prev.ons * factor),
-          gram24k: Math.round(prev.gram24k * factor),
-          gram22k: Math.round(prev.gram22k * factor),
-          ceyrek: Math.round(prev.ceyrek * factor),
-          tam: Math.round(prev.tam * factor),
-        };
-      });
-    }, 4000);
+    // Canlı güncellemeler için her 5 saniyede bir istek at
+    const interval = setInterval(fetchRates, 5000);
 
     return () => clearInterval(interval);
   }, []);
